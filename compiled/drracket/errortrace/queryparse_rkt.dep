@@ -1,1 +1,0 @@
-("7.9" racket ("c252bdf3520fcf9bf8c3c06caaa0e93571b8c19b" . "89a50606a97fbe737e9418c0d6266754b2c0fbb4") #"/Users/murakamikoudai/Desktop/muraql/utilities.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
