@@ -28,9 +28,9 @@ git clone https://github.com/kodaimura/muraql.git
 # 使い方
 Schema, Resolver を定義するだけで簡単に GraphQL サーバを起動できる. \
 必要な関数は３つだけ 
-* (run-graphql)
 * (define/schema)
 * (define/resolver)
+* (run-graphql)
 
 基本的な使い方は以下の通り.
 
@@ -44,15 +44,6 @@ Schema, Resolver を定義するだけで簡単に GraphQL サーバを起動で
   "hello")
 
 (run-graphql 4000)  
-```
-
-## run-graphql
-* GraphQL サーバ起動.
-* /graphql で POST リクエストを受け付ける.
-* 引数 port でポート番号を指定可能. デフォルト値は4000.
-
-```scheme
-(run-graphql [port]) 
 ```
 
 ## define/schema 
@@ -104,7 +95,6 @@ GraphQL サーバで利用する型を定義する.\
 ### define/resolver 実装例1
 
 ```scheme
-
 (define/schema "
 
   type Query {
@@ -125,10 +115,6 @@ GraphQL サーバで利用する型を定義する.\
   2)
 (define/resolver Query.boolTrue 
   #t)
-(define/resolver Query.test
-  (lambda (parent args info)
-    'AAA))
-
 ```
 
 これは, resolver をデータそのものとして与えているシンプルな例であり,\
@@ -226,7 +212,7 @@ query {
 
 
 ## デフォルト resolver
-resolver を定義していないフィールドには, そのフィールド名のデータを抽出するデフォルト resolver が適用される.
+resolver を定義していないフィールドには, そのフィールド名をキーとするデータを抽出するデフォルト resolver が適用される.
 
 parent データにそのフィールド名をキーとするデータがあれば, resolver 定義を省略できる. 
 
@@ -242,6 +228,15 @@ parent データにそのフィールド名をキーとするデータがあれ�
 (define/resolver User.name
   (lambda (parent args info)
      (hash-ref parent 'name)))
+```
+
+## run-graphql
+* GraphQL サーバ起動.
+* /graphql でリクエストを受け付ける.
+* 引数 port でポート番号を指定可能. デフォルト値は4000.
+
+```scheme
+(run-graphql [port]) 
 ```
 
 # 実装例 (全体)
@@ -303,6 +298,10 @@ type Query {
 
 ## リクエスト方法例
 * curl コマンド
+
+```
+curl "localhost:4000/graphql?query=\{player(id : 1) \{id name\}\}"
+```
 
 ```
 curl -X POST \

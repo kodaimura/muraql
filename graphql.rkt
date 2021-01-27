@@ -90,7 +90,9 @@
 ;; graphql処理の起点
 (define execute-request
   (lambda (req)
-    (define post-data (bytes->jsexpr (request-post-data/raw req)))
+    (define post-data (if (bytes=? (request-method req) #"POST")
+                          (bytes->jsexpr (request-post-data/raw req))
+                          (make-hash (url-query (request-uri req)))))
     (define query (hash-ref post-data 'query))
     (define opname (if (hash-has-key? post-data 'operationName)
                        (hash-ref post-data 'operationName)
@@ -165,9 +167,9 @@
            (lambda (req)
              (execute-request req)))
 
-    ;(get* endpoint
-    ;       (lambda (req)
-    ;         (execute-request req))) 
+    (get* endpoint
+           (lambda (req)
+             (execute-request req))) 
     
     (options* endpoint
               (lambda (req) ""))))

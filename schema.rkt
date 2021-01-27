@@ -108,7 +108,7 @@
     (define _typemap (make-hash))
     (define _querytype 'null)
     (define _mutationtype 'null)
-    (define _subscriptiontype 'nullå)
+    (define _subscriptiontype 'null)
 
     (for ([typedef typedefs])
       (let ([kind (hash-ref typedef 'kind)]

@@ -63,11 +63,9 @@
     (define roottype (send schema get-roottype (hash-ref operation 'operation)))
     (define selectionset (hash-ref operation 'selectionset))
     
-    (if (eq? 'null roottype)
-        (make-error "~a operation can not use." (hash-ref operation 'operation))
-        (append (unique-operation-name? operation opnames)
+    (append (unique-operation-name? operation opnames)
             (lone-anonymous-operation? operation opcount)
-            (validate-fields selectionset roottype fragments schema)))))
+            (validate-fields selectionset roottype fragments schema))))
 
 
 (define validate-fragment
