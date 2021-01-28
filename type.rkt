@@ -33,14 +33,15 @@
 
 
 (define coerce-input-List
-  (lambda (values type schema)
+  (lambda (value type schema)
+    (define values (hash-ref value 'value))
     (cond
       ((eq? 'null values) 'null) 
       ((list? values)
        (map (lambda (value) (coerce-input-value value (hash-ref type 'type) schema))
             values))
       (else
-       (list (coerce-input-value values (hash-ref type 'type) schema))))))
+       (list (coerce-input-value value (hash-ref type 'type) schema))))))
 
 
 (define coerce-input-Enum-or-Input
@@ -56,7 +57,6 @@
   (lambda (value typedef schema)
     (define fieldsdef (hash-ref typedef 'fields))
     (define fieldmap (make-hash))
-    
     (for ([field (hash-ref value 'fields null)])
       (let ([name (hash-ref field 'name)])
         (hash-set! fieldmap

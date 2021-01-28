@@ -132,6 +132,15 @@
       errors))
 
 
+(define literal
+  (lambda (value)
+    (if (eq? (hash-ref value 'kind) 'LIST)
+        (string-append
+         "["
+         (string-join (map literal (hash-ref value 'value)) ", ")
+         "]")
+        (format "~s" (hash-ref value 'value)))))
+
 (define inputvalue-coercible?
   (lambda (value type schema)
     (define kind (hash-ref type 'kind))
@@ -157,10 +166,10 @@
 
 (define List-value?
   (lambda (value type schema)
-    (define vals (hash-ref value 'values))
-    (if (list? value)
+    (define values (hash-ref value 'value))
+    (if (list? values)
         (apply append (map (lambda (x) (inputvalue-coercible? x (hash-ref type 'type) schema))
-                           value))
+                           values))
         (inputvalue-coercible? value (hash-ref type 'type) schema))))
 
 
@@ -227,50 +236,44 @@
 (define Enum-coercible?
   (lambda (value typedef schema)
     (define typename (hash-ref typedef 'name))
-    (define val (hash-ref value 'value))
     (cond
       ((not (eq? (hash-ref value 'kind) 'ENUM))
        (make-error "Enum '~a' cannot represent non-enum value: ~s."
-                   typename val))
-      ((not (hash-has-key? (hash-ref typedef 'values) val))
+                   typename (literal value)))
+      ((not (hash-has-key? (hash-ref typedef 'values) (hash-ref value 'value)))
        (make-error "Value '~a' does not exist in '~a' enum."
-                   val typename))
+                   (literal value) typename))
       (else null))))
 
   
 
 (define Int-value?
   (lambda (value)
-    (define val (hash-ref value 'value))
-    (if (and (exact-integer? val) (< (abs val) 2147483647))
+    (if (and (eq? (hash-ref value 'kind) 'INT)
+             (< (abs (hash-ref value 'value)) 2147483647))
         null
-        (make-error "Int cannot represent non-integer value: ~s" val))))
+        (make-error "Int cannot represent non-integer value: ~a" (literal value)))))
 
 
 (define Float-value?
   (lambda (value)
-    (define val (hash-ref value 'value))
-    (if (number? val)
+    (if (number? (hash-ref value 'value))
         null
-        (make-error "Float cannot represent non-float value: ~s" val))))
+        (make-error "Float cannot represent non-float value: ~a" (literal value)))))
 
 
 (define String-value?
   (lambda (value)
-    (define val (hash-ref value 'value))
-    (if (string? val)
+    (if (eq? (hash-ref value 'value) 'STRING)
         null
-        (make-error "String cannot represent non-float value: ~s" val))))
+        (make-error "String cannot represent non-float value: ~a" (literal value)))))
 
 
 (define Boolean-value?
   (lambda (value)
-    (define val (hash-ref value 'value))
-    (cond
-      ((eq? 'true val) null)
-      ((eq? 'false val) null)
-      (else
-       (make-error "Boolean cannot represent non-float value: ~s" val)))))
+    (if (eq? (hash-ref value 'kind) 'BOOLEAN)
+        null
+        (make-error "Boolean cannot represent non-float value: ~a" (literal value)))))
 
 
 (define ID-value?
@@ -278,7 +281,7 @@
     (define val (hash-ref value 'value))
     (if (or (string? val) (exact-integer? val))
         null
-        (make-error "ID cannot represent non-float value: ~s" val))))
+        (make-error "ID cannot represent non-float value: ~a" (literal value)))))
 
 
 (define unique-fragment-name?

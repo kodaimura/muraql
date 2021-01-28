@@ -257,7 +257,7 @@
       (lambda ()
         (if error
             null
-            (hash 'kind 'LIST 'values (parse-listvalues)))))
+            (hash 'kind 'LIST 'value (parse-listvalues)))))
     
 
     (define parse-listvalues
@@ -265,7 +265,7 @@
         (cond
           (error null)
           ((end-of-token?) (set-error "Syntax Error: Expected ']', found <EOF>."))
-          ((token-eq? "[") (parse-list (append l (list (parse-list)))))
+          ((eq? (token) "[") (parse-listvalues (append l (list (parse-list)))))
           ((token-eq? "]") l)
           (else (parse-listvalues (append l (list (parse-value))))))))
 

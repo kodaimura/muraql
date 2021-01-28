@@ -91,3 +91,12 @@
                                      (and (< 96 x) (> 123 x))
                                      (and (< 64 x) (> 91 x))
                                      (and (< 47 x) (> 58 x)))) rest)))))
+
+
+(define ->string
+  (lambda (x)
+    (cond
+      ((string? x) x)
+      ((number? x) (number->string x))
+      ((symbol? x) (symbol->string x))
+      (else '->string))))
