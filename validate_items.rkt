@@ -264,16 +264,16 @@
 
 (define String-value?
   (lambda (value)
-    (if (eq? (hash-ref value 'value) 'STRING)
+    (if (eq? (hash-ref value 'kind) 'STRING)
         null
-        (make-error "String cannot represent non-float value: ~a" (literal value)))))
+        (make-error "String cannot represent non-string value: ~a" (literal value)))))
 
 
 (define Boolean-value?
   (lambda (value)
     (if (eq? (hash-ref value 'kind) 'BOOLEAN)
         null
-        (make-error "Boolean cannot represent non-float value: ~a" (literal value)))))
+        (make-error "Boolean cannot represent non-boolean value: ~a" (literal value)))))
 
 
 (define ID-value?
@@ -281,7 +281,7 @@
     (define val (hash-ref value 'value))
     (if (or (string? val) (exact-integer? val))
         null
-        (make-error "ID cannot represent non-float value: ~a" (literal value)))))
+        (make-error "ID cannot represent non-ID value: ~a" (literal value)))))
 
 
 (define unique-fragment-name?

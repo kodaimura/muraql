@@ -6,16 +6,17 @@
          "introspection.rkt")
 
 (provide execute)
+(define QUERY_CACHE (make-hash))
 
 (define select-operation
-  (lambda (document [operationname 'undefined])
+  (lambda (document [operationname #f])
     (define operations
       (for/hash ([op document]
                  #:when (eq? 'OPERATION_DEFINITION (hash-ref op 'kind)))
         (values (hash-ref op 'name) op)))
       
       (cond
-        ((eq? operationname 'undefined)
+        ((not operationname)
          (if (>= 1 (length (hash-keys operations)))
              (hash-ref operations (car (hash-keys operations)))
              (make-error "Must provide operation name if query contains multiple operations.")))
@@ -38,8 +39,8 @@
     (define exeCtx (make-hash))
     
     (if (list? operation) ;(= error)
-        operation
-        (begin 
+        (hash-set! exeCtx 'errors operation)
+        (begin
           (hash-set! exeCtx 'operation operation)
           (hash-set! exeCtx 'fragments (get-fragments document))
           (hash-set! exeCtx 'schema schema)
@@ -64,12 +65,20 @@
 
 
 (define execute
-  (lambda (schema resolvers document [operationname 'undefined])
+  (lambda (schema resolvers document operationname [cachekey #f])
     (define exeCtx (build-exeCtx schema resolvers document operationname))
-    (if (list? exeCtx)
-        (hash 'errors exeCtx)
-        (let ([data (exec-operation exeCtx (hash-ref exeCtx 'operation))])
-          (make-response exeCtx data)))))
+    (define errors (hash-ref exeCtx 'errors))
+    (cond
+      ((not (null? errors)) errors)
+      ((hash-has-key? QUERY_CACHE cachekey) (hash-ref QUERY_CACHE cachekey))
+      (else
+       (let* ([operation (hash-ref exeCtx 'operation)]
+              [data (exec-operation exeCtx operation)]
+              [response (make-response exeCtx data)])
+         (if (and cachekey (eq? 'query (hash-ref operation 'operation)))
+             (hash-set! QUERY_CACHE cachekey data)
+             (set! QUERY_CACHE (make-hash)))
+         response)))))
 
 
 (define exec-operation

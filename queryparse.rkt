@@ -6,8 +6,8 @@
 
 (define queryparse
   (lambda (source)
-    (let ([parser (new QueryParser% [source source])])
-      (send parser parse-document))))
+    (define parser (new QueryParser% [source source]))
+    (send parser parse-document)))
 
 
 (define QueryParser%
@@ -331,51 +331,3 @@
     
     )
   )
-
-
-
-(define source->tokens
-  (lambda (str)
-    (s->ts (string-append str " ") '())))
-
-
-(define s->ts
-  (lambda (str ls)
-    (define s (if (string=? str "") #f (substring str 0 1)))
-    (cond
-      ((not s) ls)
-      ((member? s '("{" "}" "(" ")" ":" "[" "]" ".") string=?)
-       (s->ts (substring str 1) (append ls (list s))))
-      ((member? s '("\n" "\t" "," " ") string=?)
-       (s->ts (substring str 1) ls))
-      ((member? s '("\"" "'" "`") string=?)
-       (let ([end-string (get-index-end-string str)])
-         (s->ts (substring str end-string)
-                (append ls (list (substring str 0 end-string))))))
-      (else
-       (let ([end-token (get-index-end-token str)])
-         (s->ts (substring str end-token)
-                (append ls (list (substring str 0 end-token)))))))))
-
-
-(define get-index-end-string
-  (lambda (str)
-    (define x (substring str 0 1)) ;; x: "\"" or "'" or "`" 
-    (define (aux str i)
-      (let ([s (substring str i (+ i 1))])
-        (if (string=? s x)
-            (+ i 1)
-            (aux str (+ i 1)))))
-    (aux str 1)))
-
-
-(define get-index-end-token
-  (lambda (str)
-    (define (aux str i)
-      (if (member? (substring str i (+ i 1))
-                   '("{" "}" "(" ")" ":" "\n" "\t"
-                         "[" "]" "," " " "." "\"" "'" "`")
-                   string=?)
-          i
-          (aux str (+ i 1))))
-    (aux str 0)))

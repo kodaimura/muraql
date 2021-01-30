@@ -65,7 +65,7 @@
         (cond
           ((member? (token) '("type" "union" "enum" "input") string=?) (parse-type-def))
           ((token-eq? "schema") (parse-schema-def))
-          (error "Syntax Error: Unexpected " (token)))))
+          (else (error "Syntax Error: Unexpected " (token))))))
 
 
     (define parse-type-def
@@ -75,7 +75,7 @@
           ((token-eq? "union") (parse-uniontype-def))
           ((token-eq? "enum") (parse-enumtype-def))
           ((token-eq? "input") (parse-inputtype-def))
-          (error "Syntax Error: Unexpected " (token)))))
+          (else (error "Syntax Error: Unexpected " (token))))))
     
 
     (define parse-objecttype-def
@@ -265,24 +265,3 @@
            (error "Syntax Error: Expected ':', found " (token))))))
     )
   )
-
-
-
-;; パースの前処理。
-(define prepare-s->t
-  (lambda (str [ret ""])
-    (cond
-      ((string=? str "") ret)
-      (else
-       (let ([s (substring str 0 1)])
-         (if (member? s '("{" "}" "(" ")" "[" "]" "!" ":" "\n" "\t") string=?)
-             (prepare-s->t (substring str 1) (string-append ret " " s " "))
-             (prepare-s->t (substring str 1) (string-append ret s))))))))
-
-;(document->tokens "type User{id:ID! name: String}")
-;-> '("type" "{" "id" ":" "ID" "!" "name" ":" "String" "}")  
-(define source->tokens
-  (lambda (str)
-    (define _str (prepare-s->t str))
-    (filter-not (lambda (s) (member? s '("" "\n" "\t") string=?))
-                (string-split _str " "))))

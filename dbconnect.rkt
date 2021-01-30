@@ -44,6 +44,7 @@
     (define sql (apply format (cons stmt args)))
     (query-exec connection sql)))
 
+
 ;; select
 ;; 条件に合うデータを一つだけ取得
 (define query-get
