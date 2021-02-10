@@ -1,4 +1,4 @@
-# muraql
+# Muraql
 Racket で GraphQL サーバを実装するためのライブラリ.\
 GraphQL 仕様 http://spec.graphql.org に沿って開発しているが,\
 いくつか未実装で対応していない機能もある.

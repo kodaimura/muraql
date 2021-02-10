@@ -33,7 +33,6 @@
 (define __typedefs '())
 (define __resolvers (make-hash))
 (define __schema #f)
-(define cache (make-hash))
 
 
 (define schema-set!
@@ -76,26 +75,17 @@
                 (hash-set! tr field proc)))
         (else (hash-set! __resolvers type (make-hash (list (cons field proc))))))))
 
-(define make-cachekey
-  (lambda (query opname)
-    (define tokens (if opname
-                       (cons opname (source->tokens query))
-                       (source->tokens query)))
-    (bytes->hex-string
-     (sha224-bytes
-      (string->bytes/utf-8 (string-join tokens))))))
 
 ;; graphql メイン
 (define graphql
   (lambda (query opname)
-    (define cachekey (make-cachekey query opname))
     (define document (queryparse query))
     (cond
       ((hash? document) document)  ;; #hash((errors . '( ... ))) 
       (else
        (let ([err (validate document __schema)])
          (if (null? err)
-             (execute __schema __resolvers document opname cachekey)
+             (execute __schema __resolvers document opname)
              (hash 'error (hash 'errors err))))))))
 
 

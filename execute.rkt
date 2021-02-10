@@ -6,7 +6,9 @@
          "introspection.rkt")
 
 (provide execute)
-(define QUERY_CACHE (make-hash))
+
+
+(define query_cache (make-hash))
 
 (define select-operation
   (lambda (document [operationname #f])
@@ -65,20 +67,15 @@
 
 
 (define execute
-  (lambda (schema resolvers document operationname [cachekey #f])
+  (lambda (schema resolvers document operationname); [cachekey #f])
     (define exeCtx (build-exeCtx schema resolvers document operationname))
     (define errors (hash-ref exeCtx 'errors))
     (cond
       ((not (null? errors)) errors)
-      ((hash-has-key? QUERY_CACHE cachekey) (hash-ref QUERY_CACHE cachekey))
       (else
        (let* ([operation (hash-ref exeCtx 'operation)]
-              [data (exec-operation exeCtx operation)]
-              [response (make-response exeCtx data)])
-         (if (and cachekey (eq? 'query (hash-ref operation 'operation)))
-             (hash-set! QUERY_CACHE cachekey data)
-             (set! QUERY_CACHE (make-hash)))
-         response)))))
+              [data (exec-operation exeCtx operation)])
+        (make-response exeCtx data))))))
 
 
 (define exec-operation
@@ -210,7 +207,7 @@
     (define fielddef (get-fielddefinition parenttype (hash-ref field 'name)))
     (define args (make-resolver-args fielddef field (hash-ref exeCtx 'schema)))
     (define info (make-resolver-info exeCtx fielddef parenttype))
-    (define res_type (hash-ref fielddef 'type))
+    (define res_type (hash-ref fielddef 'type))  
     (define resolver (select-resolver exeCtx parenttype field))
     
     (define result (if (procedure? resolver)
@@ -273,9 +270,9 @@
   (lambda (exeCtx field res_type data info)
     (define type-kind (get-type-kind exeCtx (hash-ref res_type 'name)))
     (cond
+      ((eq? type-kind 'OBJECT) (complete-object-field exeCtx field res_type data))
       ((eq? type-kind 'ENUM) (complete-enum-field exeCtx field res_type data info))
       ((eq? type-kind 'UNION) (complete-union-field exeCtx field res_type data info))
-      ((eq? type-kind 'OBJECT) (complete-object-field exeCtx field res_type data))
       (else (error 'complete-named-field)))))
 
 
