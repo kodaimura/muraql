@@ -18,6 +18,13 @@ GraphQL 仕様 http://spec.graphql.org に沿って開発しているが,\
 * Interface型
 * Schema Description
 
+## 特徴
+以下のリクエストで, スキーマをダウンロードできるようにした.
+```
+GET /graphql/schema
+```
+
+
 # インストール
 以下のコマンドでインストール.
 
@@ -364,7 +371,7 @@ fetch(url, ops)
 * dmac/spin https://github.com/dmac/spin 
 
 (run-graphql) の代わりに \
-(set-spin-graphql define-handler "/graphql") を用いる.\
+(set-spin-graphql define-handler) を用いる.\
 これにより "/graphql" エンドポイントが作成される.
 
 ```scheme
@@ -375,7 +382,7 @@ fetch(url, ops)
 (define/schema ... )
 (define/resolver ... )
 
-(set-spin-graphql define-handler "/graphql") 
+(set-spin-graphql define-handler) 
 ;; "/graphql" エンドポイント作成
 
 (run)  ;;dmac/spin起動

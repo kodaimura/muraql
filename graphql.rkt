@@ -6,8 +6,6 @@
          web-server/http/empty
          json)
 
-(require file/sha1)
-
 (require "utilities.rkt"
          "execute.rkt"
          "sdlparse.rkt"
@@ -30,7 +28,7 @@
          set-spin-graphql)
 
 
-(define __typedefs '())
+(define __typedefs "")
 (define __resolvers (make-hash))
 (define __schema #f)
 
@@ -109,6 +107,16 @@
      body)))
 
 
+(define response/schema
+  (lambda ()
+    (response
+     200 #"OK"
+     (current-seconds) TEXT/HTML-MIME-TYPE
+     (list (make-header #"Access-Control-Allow-Origin" #"*")
+           (make-header #"Connection" #"keep-alive")
+           (make-header #"Content-Disposition" #"attachment;filename=\"scheme.text\""))
+      (lambda (op) (write-string __typedefs op)))))
+
 ;;オリジン間リソース共有(cors)
 (define response/preflight
   (lambda ()
@@ -123,19 +131,25 @@
 (define preflight-request?
   (lambda (req)
     (bytes=? (request-method req) #"OPTIONS")))
-       
+
+
 (define graphql*
   (lambda (req)
-    (if (preflight-request? req)
-        (response/preflight)
-        (response/json (execute-request req)))))
+    (define path (path->string (url->path (request-uri req))))
+    (cond
+      ((preflight-request? req) (response/preflight))
+      ((string=? path "/graphql")
+       (response/json (execute-request req)))
+      ((string=? path "/graphql/schema")
+       (response/schema))
+      (else 'graphql*))))
 
 
 ;; "/graphql" エンドポイント起動
 (define run-graphql
   (lambda ([port 4000])
     (schema-set!)
-    (serve/servlet #:servlet-path "/graphql"
+    (serve/servlet #:servlet-regexp (regexp "/graphql$|/graphql/schema$")
                    #:port port
                    #:launch-browser? #f
                    #:mime-types-path "application/json"
@@ -144,7 +158,7 @@
 
 ;; dmac/spin に"/graphql"エンドポイント追加
 (define set-spin-graphql
-  (lambda (define-handler [endpoint "/graphql"])
+  (lambda (define-handler)
     
     (schema-set!)
     
@@ -163,14 +177,22 @@
     (define (get* path handler)
       (define-handler "GET" path handler json-response-maker))
     
-    (post* endpoint
+    (post* "/graphql"
            (lambda (req)
              (execute-request req)))
 
-    (get* endpoint
+    (get* "/graphql"
            (lambda (req)
-             (execute-request req))) 
+             (execute-request req)))
     
-    (options* endpoint
-              (lambda (req) ""))))
+    (options* "/graphql"
+              (lambda (req) ""))
 
+    (define (schema-response-maker status headers body)
+      (response/schema))
+
+    (define (get-schema path handler)
+      (define-handler "GET" path handler schema-response-maker))
+
+    (get-schema "/graphql/schema"
+                (lambda () ""))))
