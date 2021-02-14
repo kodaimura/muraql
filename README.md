@@ -18,12 +18,6 @@ GraphQL 仕様 http://spec.graphql.org に沿って開発しているが,\
 * Interface型
 * Schema Description
 
-## 特徴
-以下のリクエストで, スキーマをダウンロードできるようにした.
-```
-GET /graphql/schema
-```
-
 
 # インストール
 以下のコマンドでインストール.
@@ -388,3 +382,10 @@ fetch(url, ops)
 (run)  ;;dmac/spin起動
 ```
 
+## スキーマダウンロード
+
+## 特徴
+以下のリクエストで, クライアント側からスキーマ定義をダウンロードできるようにした.
+```
+GET /graphql/schema
+```
